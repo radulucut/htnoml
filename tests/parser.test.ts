@@ -1,5 +1,5 @@
-const parser = require('../parser.js');
- 
+import { parse, ElementNode, TextNode } from '../src/parser';
+
 test('parse htnoml', () => {
   const htnoml = `
 {:html
@@ -28,23 +28,23 @@ test('parse htnoml', () => {
   const expectedTree = createElementNode();
   expectedTree.childNodes.push(html);
 
-  const tree = parser.parse(htnoml);
+  const tree = parse(htnoml);
 
   expect(tree).toEqual(expectedTree);
 });
 
-function createElementNode() {
+function createElementNode(): ElementNode {
   return {
     type: 1,
     nodeTypes: [],
     childNodes:[],
     attributes: []
-  };
+  } as ElementNode;
 }
 
-function createTextNode(text) {
+function createTextNode(text: string): TextNode {
   return {
     type: 2,
     text
-  };
+  } as TextNode;
 }
