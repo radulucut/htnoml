@@ -1,12 +1,11 @@
+import ElementNode from './ElementNode';
+import TextNode from './TextNode';
+import { Attribute, State } from './Types';
+
 export function parse(text: string): ElementNode {
   const childParentMap = new Map();
 
-  const rootNode = {
-    type: Type.Element,
-    nodeTypes: [],
-    childNodes: [],
-    attributes: []
-  } as ElementNode;
+  const rootNode = new ElementNode(true);
 
   let currentNode = rootNode;
   const stateStack = [];
@@ -44,22 +43,16 @@ export function parse(text: string): ElementNode {
           stateStack.pop();
         }
 
-        const newNode = {
-          type: Type.Element,
-          nodeTypes: [],
-          childNodes: [],
-          attributes: []
-        };
+        const newNode = new ElementNode();
         currentNode.childNodes.push(newNode);
         childParentMap.set(newNode, currentNode);
         
         currentNode = newNode; 
 
         if(lastState === State.TextStart) {
-          const childNode = {
-            type: Type.Text,
-            text: chunk
-          };
+          const childNode = new TextNode();
+          childNode.text = chunk;
+
           childParentMap.set(childNode, currentNode);
 
           currentNode.childNodes.push(childNode);
@@ -89,7 +82,7 @@ export function parse(text: string): ElementNode {
           ignoreChar = true;
       case ' ':
         if(lastState === State.NodeTypeStart) {
-          currentNode.nodeTypes.push(chunk);
+          currentNode.nodeTypes.push(chunk.trim());
           chunk = '';
           stateStack.pop();
           ignoreChar = true;
@@ -136,15 +129,14 @@ export function parse(text: string): ElementNode {
           break;
         
         if(lastState === State.NodeTypeStart) {
-          currentNode.nodeTypes.push(chunk);
+          currentNode.nodeTypes.push(chunk.trim());
           stateStack.pop();
         }
                 
         if(lastState === State.TextStart) {
-          const childNode = {
-            type: Type.Text,
-            text: chunk
-          } as TextNode;
+          const childNode = new TextNode();
+          childNode.text = chunk;
+
           childParentMap.set(childNode, currentNode);
 
           currentNode.childNodes.push(childNode);
@@ -171,35 +163,3 @@ export function parse(text: string): ElementNode {
   return rootNode;
 }
 
-interface Node {
-  type: Type;
-}
-
-export interface ElementNode extends Node {
-  nodeTypes: string[];
-  childNodes: (ElementNode | TextNode)[];
-  attributes: Attribute[];
-}
-
-interface Attribute {
-  name: string;
-  value: string;
-}
-
-export interface TextNode extends Node {
-  text: string;
-}
-
-enum State {
-  None = 0,
-  NodeStart = 1,
-  NodeTypeStart = 2,
-  AttrStart = 3,
-  TextStart = 4
-}
-
-enum Type {
-  None = 0,
-  Element = 1,
-  Text = 2
-}
