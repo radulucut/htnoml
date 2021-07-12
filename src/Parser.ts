@@ -1,6 +1,7 @@
 import ElementNode from './ElementNode';
+import Attribute from './Attribute';
 import TextNode from './TextNode';
-import { Attribute, State } from './Types';
+import { State } from './Types';
 
 export function parse(text: string): ElementNode {
   const childParentMap = new Map();

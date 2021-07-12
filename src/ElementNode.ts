@@ -1,4 +1,4 @@
-import { Attribute } from './Types';
+import Attribute from './Attribute';
 import TextNode from './TextNode';
 
 export default class ElementNode {

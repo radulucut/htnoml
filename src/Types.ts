@@ -1,8 +1,3 @@
-export interface Attribute {
-  name: string;
-  value: string;
-}
-
 export enum State {
   None = 0,
   NodeStart = 1,
