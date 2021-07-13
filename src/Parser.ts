@@ -93,11 +93,10 @@ export function parse(text: string): ElementNode {
         if(lastState === State.AttrStart)
           break;
 
-        const attribute = {
-          name: chunk, 
-          value: undefined
-        } as Attribute;
-
+        const attribute = new Attribute();
+        attribute.name = chunk.trim();
+        attribute.value = undefined;
+        
         currentNode.attributes.push(attribute);
         chunk = '';
 
