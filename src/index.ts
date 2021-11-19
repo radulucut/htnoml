@@ -1,16 +1,23 @@
 import { read, write, getDestinationPath, validateFilePath } from './FileLoader';
 import { parse } from './Parser';
 
+import { InputStream } from './InputStream';
+import { TokenStream } from './TokenStream';
+import { Parser } from './ParserV2';
+
 (async function main() {
   const args = parseArguments();
   validateFilePath(args.filePath);
 
   const fileData = await read(args.filePath);
 
-  const htmlTree = parse(fileData);
-
   const destinationPath = getDestinationPath(args.filePath);
-  write(destinationPath, htmlTree.toHtml());
+  const parser = Parser(TokenStream(InputStream(fileData)));
+  write(destinationPath, JSON.stringify(parser.parse(), null, '\t'));
+//  const htmlTree = parse(fileData);
+
+//  const destinationPath = getDestinationPath(args.filePath);
+//  write(destinationPath, htmlTree.toHtml());
 })();
 
 function parseArguments(): Arguments {
