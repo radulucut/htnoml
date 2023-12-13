@@ -1,13 +1,8 @@
 package htnoml
 
-import "io"
-
-type Node struct {
-	ElementType *Chunk
-	Text        *Chunk      // Only for text nodes
-	Attributes  []Attribute // Only for element nodes
-	Children    []Node      // Only for element nodes
-}
+import (
+	"io"
+)
 
 type Chunk struct {
 	Start int
@@ -17,6 +12,13 @@ type Chunk struct {
 type Attribute struct {
 	Name  *Chunk
 	Value *Chunk
+}
+
+type Node struct {
+	ElementType *Chunk
+	Text        *Chunk      // Only for text nodes
+	Attributes  []Attribute // Only for element nodes
+	Children    []Node      // Only for element nodes
 }
 
 type TokenType byte
@@ -54,7 +56,42 @@ func NewParser(reader io.ReadSeeker) (*Parser, error) {
 	}, nil
 }
 
-func (p *Parser) Parse() {
+func (p *Parser) ToHTML() string {
+	if p.node == nil {
+		p.parse()
+	}
+	return p.nodeToHTML(p.node, true)
+}
+
+func (p *Parser) nodeToHTML(node *Node, isRoot bool) string {
+	if node.Text != nil {
+		return string(p.buf[node.Text.Start:node.Text.End])
+	}
+	children := ""
+	for _, child := range node.Children {
+		children += p.nodeToHTML(&child, false)
+	}
+	if isRoot {
+		return children
+	}
+	attributes := ""
+	for _, attr := range node.Attributes {
+		attributes += " " + string(p.buf[attr.Name.Start:attr.Name.End])
+		if attr.Value != nil {
+			attributes += "=" + "\"" + string(p.buf[attr.Value.Start:attr.Value.End]) + "\""
+		}
+	}
+	if node.ElementType == nil {
+		return "<div" + attributes + ">" + children + "</div>"
+	}
+	tag := string(p.buf[node.ElementType.Start:node.ElementType.End])
+	if children == "" && isVoidElement(tag) {
+		return "<" + tag + attributes + " />"
+	}
+	return "<" + tag + attributes + ">" + children + "</" + tag + ">"
+}
+
+func (p *Parser) parse() {
 	p.node = &Node{}
 	childParentMap := map[*Node]*Node{}
 	curr := p.node
@@ -64,10 +101,12 @@ func (p *Parser) Parse() {
 			continue
 		}
 		if t.Type == TokenTypeReserved && p.buf[t.Start] == ':' {
+			t = p.nextToken()
 			curr.ElementType = &Chunk{
 				Start: t.Start,
 				End:   t.End,
 			}
+			continue
 		}
 		if t.Type == TokenTypeIdentifier {
 			name := &Chunk{
@@ -93,6 +132,7 @@ func (p *Parser) Parse() {
 				Name:  name,
 				Value: value,
 			})
+			continue
 		}
 		if t.Type == TokenTypeReserved && p.buf[t.Start] == '{' {
 			curr.Children = append(curr.Children, Node{})
@@ -119,6 +159,7 @@ func (p *Parser) Parse() {
 					End:   t.End,
 				},
 			})
+			continue
 		}
 	}
 }
@@ -154,7 +195,7 @@ func (p *Parser) readNextToken() *Token {
 		return &Token{
 			Type:  TokenTypeWhitespace,
 			Start: start,
-			End:   p.pos - 1,
+			End:   p.pos,
 		}
 	}
 	if p.isReserved(p.buf[p.pos]) {
@@ -163,6 +204,7 @@ func (p *Parser) readNextToken() *Token {
 		return &Token{
 			Type:  TokenTypeReserved,
 			Start: p.pos - 1,
+			End:   p.pos,
 		}
 	}
 	start := p.pos
@@ -173,7 +215,7 @@ func (p *Parser) readNextToken() *Token {
 	return &Token{
 		Type:  TokenTypeIdentifier,
 		Start: start,
-		End:   p.pos - 1,
+		End:   p.pos,
 	}
 }
 

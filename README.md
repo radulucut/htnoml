@@ -1,6 +1,6 @@
 # htnoml
 
-Experimental DSL that compiles to HTML.
+Experimental alternative to HTML
 
 ### Example
 
@@ -14,7 +14,7 @@ Experimental DSL that compiles to HTML.
     {:link rel[stylesheet] href[css/style.css]}
   }
   {:body
-    {class[container main] > This HTnoML syntax}
+    {class[container main] > This is HTnoML syntax}
   }
 }
 ```

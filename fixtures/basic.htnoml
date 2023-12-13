@@ -7,6 +7,6 @@
     {:link rel[stylesheet] href[css/style.css]}
   }
   {:body 
-    {class[container main] > This HTnoML syntax}
+    {class[container main] > This is HTnoML syntax}
   }
 }

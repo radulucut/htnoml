@@ -1,15 +1,16 @@
 package htnoml
 
 import (
-	"log"
 	"os"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestParser(t *testing.T) {
-	t.Run("Parse", func(t *testing.T) {
-		t.Run("should return correct html", func(t *testing.T) {
-			f, err := os.Open("example.htnoml")
+	t.Run("ToHTML", func(t *testing.T) {
+		t.Run("basic.htnoml - should return correct html", func(t *testing.T) {
+			f, err := os.Open("fixtures/basic.htnoml")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -18,9 +19,14 @@ func TestParser(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			p.Parse()
-			log.Printf("%+v", p.node)
-			// TODO: assert
+			html := p.ToHTML()
+			expected, err := os.ReadFile("fixtures/basic.html")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if diff := cmp.Diff(string(expected), html); diff != "" {
+				t.Errorf("ToHTML() mismatch (-want +got):\n%s", diff)
+			}
 		})
 	})
 }
