@@ -2,6 +2,8 @@
 
 Experimental alternative to HTML
 
+![Test](https://github.com/radulucut/htnoml/actions/workflows/test.yml/badge.svg)
+
 ### Example
 
 ```htnoml
