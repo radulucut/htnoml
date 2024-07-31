@@ -49,6 +49,6 @@ func main() {
 		panic(err)
 	}
 	defer o.Close()
-	p.ToHTML(o) // writes the HTML to the buffer
+	p.ToHTML(o) // Convert HTnoML to HTML
 }
 ```
