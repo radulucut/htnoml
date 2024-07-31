@@ -27,23 +27,28 @@ HTML-like DSL that that can be converted into HTML.
 package main
 
 import (
-  "fmt"
-  "github.com/radulucut/htnoml"
+	"os"
+
+	"github.com/radulucut/htnoml"
 )
 
 func main() {
-  f, err := os.Open("example.htnoml")
-  if err != nil {
-    panic(err)
-  }
-  defer f.Close()
+	f, err := os.Open("example.htnoml")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
 
-  p, err := NewParser(f)
-  if err != nil {
-    panic(err)
-  }
+	p, err := htnoml.NewParser(f)
+	if err != nil {
+		panic(err)
+	}
 
-  w := new(bytes.Buffer)
-  p.ToHTML(w) // writes the HTML to the buffer
+	o, err := os.Create("example.html")
+	if err != nil {
+		panic(err)
+	}
+	defer o.Close()
+	p.ToHTML(o) // writes the HTML to the buffer
 }
 ```
