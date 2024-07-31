@@ -1,10 +1,10 @@
-# htnoml
+# HTnoML
 
-Experimental alternative to HTML
+HTML-like DSL that that can be converted into HTML.
 
 ![Test](https://github.com/radulucut/htnoml/actions/workflows/test.yml/badge.svg)
 
-### Example
+### Example of HTnoML syntax
 
 ```htnoml
 {:html
@@ -18,5 +18,32 @@ Experimental alternative to HTML
   {:body
     {class[container main] > This is HTnoML syntax}
   }
+}
+```
+
+### Usage
+
+```go
+package main
+
+import (
+  "fmt"
+  "github.com/radulucut/htnoml"
+)
+
+func main() {
+  f, err := os.Open("example.htnoml")
+  if err != nil {
+    panic(err)
+  }
+  defer f.Close()
+
+  p, err := NewParser(f)
+  if err != nil {
+    panic(err)
+  }
+
+  w := new(bytes.Buffer)
+  p.ToHTML(w) // writes the HTML to the buffer
 }
 ```

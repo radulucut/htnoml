@@ -1,6 +1,7 @@
 package htnoml
 
 import (
+	"bytes"
 	"os"
 	"testing"
 
@@ -19,12 +20,13 @@ func TestParser(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			html := p.ToHTML()
+			w := new(bytes.Buffer)
+			p.ToHTML(w)
 			expected, err := os.ReadFile("fixtures/basic.html")
 			if err != nil {
 				t.Fatal(err)
 			}
-			if diff := cmp.Diff(string(expected), html); diff != "" {
+			if diff := cmp.Diff(string(expected), w.String()); diff != "" {
 				t.Errorf("ToHTML() mismatch (-want +got):\n%s", diff)
 			}
 		})

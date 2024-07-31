@@ -56,39 +56,50 @@ func NewParser(reader io.ReadSeeker) (*Parser, error) {
 	}, nil
 }
 
-func (p *Parser) ToHTML() string {
+func (p *Parser) ToHTML(writer io.Writer) {
 	if p.node == nil {
 		p.parse()
 	}
-	return p.nodeToHTML(p.node, true)
+	p.nodeToHTML(writer, p.node, true)
 }
 
-func (p *Parser) nodeToHTML(node *Node, isRoot bool) string {
+func (p *Parser) nodeToHTML(w io.Writer, node *Node, isRoot bool) {
 	if node.Text != nil {
-		return string(p.buf[node.Text.Start:node.Text.End])
+		w.Write(p.buf[node.Text.Start:node.Text.End])
+		return
 	}
-	children := ""
-	for _, child := range node.Children {
-		children += p.nodeToHTML(&child, false)
-	}
-	if isRoot {
-		return children
-	}
-	attributes := ""
-	for _, attr := range node.Attributes {
-		attributes += " " + string(p.buf[attr.Name.Start:attr.Name.End])
-		if attr.Value != nil {
-			attributes += "=" + "\"" + string(p.buf[attr.Value.Start:attr.Value.End]) + "\""
+	var tag []byte
+	if !isRoot {
+		w.Write([]byte{'<'})
+		if node.ElementType == nil {
+			tag = []byte{'d', 'i', 'v'}
+		} else {
+			tag = p.buf[node.ElementType.Start:node.ElementType.End]
 		}
+		w.Write(tag)
+		for _, attr := range node.Attributes {
+			w.Write([]byte{' '})
+			w.Write(p.buf[attr.Name.Start:attr.Name.End])
+			if attr.Value != nil {
+				w.Write([]byte{'=', '"'})
+				w.Write(p.buf[attr.Value.Start:attr.Value.End])
+				w.Write([]byte{'"'})
+			}
+		}
+		if len(node.Children) == 0 && isVoidElement(string(tag)) {
+			w.Write([]byte{' ', '/', '>'})
+			return
+		}
+		w.Write([]byte{'>'})
 	}
-	if node.ElementType == nil {
-		return "<div" + attributes + ">" + children + "</div>"
+	for _, child := range node.Children {
+		p.nodeToHTML(w, &child, false)
 	}
-	tag := string(p.buf[node.ElementType.Start:node.ElementType.End])
-	if children == "" && isVoidElement(tag) {
-		return "<" + tag + attributes + " />"
+	if !isRoot {
+		w.Write([]byte{'<', '/'})
+		w.Write(tag)
+		w.Write([]byte{'>'})
 	}
-	return "<" + tag + attributes + ">" + children + "</" + tag + ">"
 }
 
 func (p *Parser) parse() {
